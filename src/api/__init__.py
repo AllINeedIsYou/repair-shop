@@ -1,0 +1,18 @@
+from fastapi import APIRouter
+
+from src.api.roles.engineer import router_eng
+from src.api.roles.operator import router_operator
+from src.api.services.services import router_services
+from src.api.roles.repairer import router_repair
+from src.api.roles.client import router_client
+from src.auth.auth import router_auth
+
+
+router=APIRouter() #главный папа роутер
+#детки-пиздюки
+router.include_router(router_eng) #инженер
+router.include_router(router_operator)#оператор
+router.include_router(router_services)#cистемная хрень, мб потом в адмику поменять
+router.include_router(router_repair)#работяга-трудяга
+router.include_router(router_client)# наш любимый, ценный пользователь
+router.include_router(router_auth) # авторизация
