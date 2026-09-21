@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
 from src.api.services.services import get_all_applications
 from src.api.services.services_engineer import perform_diagnostics
 from src.auth.auth import require_role
@@ -17,7 +16,7 @@ router_eng = APIRouter(prefix="/engineer", tags=["Инженер"])
 
 
 # получаем список заявок
-@router_eng.get("/", response_model=list[ApplicationShema], summary="Список заявок", dependencies=[Depends(require_role("engineer"))])
+@router_eng.get("/get_applications", response_model=list[ApplicationShema], summary="Список заявок", dependencies=[Depends(require_role("engineer"))])
 def get_application_engineer(db: Session = Depends(get_db)):
     return get_all_applications(db=db)
 

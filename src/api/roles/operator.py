@@ -20,7 +20,7 @@ router_operator=APIRouter(prefix='/operator',tags=["Оператор"])
 # def get_engineer_dashboard():
 #     return {"message": "Добро пожаловать в панель управления Оператора! Желаем вам приятной смены<3"}
 
-@router_operator.post("/",summary="Добавление заявки", dependencies=[Depends(require_role("operator"))])
+@router_operator.post("/add_application",summary="Добавление заявки", dependencies=[Depends(require_role("operator"))])
 def add_application(
     application: ApplicationCreateShema,
     db: Session = Depends(get_db)
@@ -41,11 +41,11 @@ def add_application(
         "id": new_application.id
     }
 
-@router_operator.get("/",response_model=list[ApplicationShema],summary="Список заявок", dependencies=[Depends(require_role("operator"))])
+@router_operator.get("/get_applications",response_model=list[ApplicationShema],summary="Список заявок", dependencies=[Depends(require_role("operator"))])
 def get_application_operator(db: Session = Depends(get_db)):
     return get_all_applications(db=db)
 
-@router_operator.delete('/{application_id}',summary='Удаление заявки', dependencies=[Depends(require_role("operator"))])
+@router_operator.delete('/delete_applications/{application_id}',summary='Удаление заявки', dependencies=[Depends(require_role("operator"))])
 def del_aplication(application_id:int, db:Session=Depends(get_db)):
     return del_elements_aplication_by_id(aplication_id=application_id,db=db)
 
