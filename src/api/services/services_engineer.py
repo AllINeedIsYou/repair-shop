@@ -1,5 +1,4 @@
 from fastapi import HTTPException
-from fastapi.params import Depends
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -7,7 +6,6 @@ from src.databases.database import get_db
 from src.models import Application
 
 #функция для диагностки(status_info)
-
 def perform_diagnostics(aplication_id:int, db:Session)->Application:
     application=db.query(Application).filter(Application.id==aplication_id).first()
     if not application:

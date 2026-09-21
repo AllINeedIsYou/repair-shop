@@ -82,5 +82,30 @@ def generate_code_endpoint(data: AccessCodeCreateSchema,db: Session = Depends(ge
         id=db_entry.id,
         code=raw_code,
         role=db_entry.role,
-        is_active=db_entry.is_active
+        is_active=db_entry.is_active #AccessCodeResponseSchema
     )
+#увольнение работника
+def dismissal_employee(employee_id: int,db: Session):
+    employee=db.query(AccessCode).filter(AccessCode.id==employee_id).first()
+    if not employee:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Работник с id={employee_id} не найден"
+        )
+    if not employee.is_active:
+        raise HTTPException(
+            status_code=400,
+            detail="Работник уже уволен"
+        )
+    employee.is_active=False
+    employee_status=f'Работник {employee_id} уволен {employee.FIO}'
+    db.commit()
+    db.refresh(employee)
+    return {
+        'status':'success',
+        'message': employee_status
+    }
+#ендпоинт для увольнения
+@router_services.patch('/{employee_id}/dismissal',summary='Увольнение работника, деактивация')
+def dismissal(employee_id:int ,db:Session=Depends(get_db)):
+    return dismissal_employee(employee_id=employee_id,db=db)
