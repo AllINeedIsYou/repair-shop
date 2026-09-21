@@ -1,11 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-DATABASE_URL = "sqlite:///./database.db"
+DATABASE_URL = "postgresql://aleksandr@localhost:5432/apitest"
 
 engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False, "timeout": 30}
+    DATABASE_URL
 )
 
 SessionLocal = sessionmaker(
