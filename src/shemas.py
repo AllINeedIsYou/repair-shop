@@ -23,6 +23,7 @@ class ApplicationShema(ApplicationCreateShema):
 # Схема для запроса на создание кода
 class AccessCodeCreateSchema(BaseModel):
     role: str
+    FIO: str
 
 
 # Схема для ответа клиенту

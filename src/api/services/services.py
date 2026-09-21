@@ -9,7 +9,7 @@ from src.models import Application,AccessCode
 from src.shemas import ApplicationShema, AccessCodeCreateSchema, AccessCodeCreateSchema, AccessCodeResponseSchema
 
 
-router_services = APIRouter(prefix='/services', tags=["Сервер"])
+router_services = APIRouter(prefix='/services', tags=["Админ"])
 
 #ФУНКЦИЯ ХЕШИРОВАНИЯ
 def hash_code(code: str) -> str:
@@ -20,7 +20,7 @@ def get_all_applications(db: Session):
     return db.query(Application).all()
 
 # ЭНДПОИНТ ДЛЯ СЕРВЕРА
-@router_services.get("/", response_model=list[ApplicationShema], summary="Список заявок")
+@router_services.get("/get_applications", response_model=list[ApplicationShema], summary="Список заявок")
 def get_application_endpoint(db: Session = Depends(get_db)):
     return get_all_applications(db)
 
@@ -40,7 +40,7 @@ def generate_access_code(length: int = 12):
     )
 
 
-def create_unique_access_code(db: Session, role: str) -> tuple[AccessCode, str]:
+def create_unique_access_code(db: Session, role: str, FIO: str) -> tuple[AccessCode, str]:
 
     while True:
         new_code = generate_access_code()
@@ -54,6 +54,7 @@ def create_unique_access_code(db: Session, role: str) -> tuple[AccessCode, str]:
     db_access_code = AccessCode(
         code_hash=hashed,
         role=role,
+        FIO=FIO,
         is_active=True
     )
 #мы сохраняем в бд хэш, не сам код, но код отдаем в return,
@@ -75,7 +76,7 @@ def generate_code_endpoint(data: AccessCodeCreateSchema,db: Session = Depends(ge
             detail=f"Недопустимая роль. Допустимые роли: {','.join(allowed_roles)}"
         )
 
-    db_entry, raw_code = create_unique_access_code(db=db, role=data.role)
+    db_entry, raw_code = create_unique_access_code(db=db, role=data.role, FIO=data.FIO)
 
     return AccessCodeResponseSchema(
         id=db_entry.id,
