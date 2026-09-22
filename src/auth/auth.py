@@ -5,9 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from src.databases.database import get_db
 from src.models import AccessCode
-from src.shemas import LoginSchema, TokenResponseSchema
-from fastapi import Security
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from src.shemas import TokenResponseSchema
+from fastapi.security import HTTPBearer, OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 security = HTTPBearer()
 
@@ -15,6 +14,9 @@ security = HTTPBearer()
 SECRET_KEY = "SUPER_PUPER_SECRET_KEY_CHANGE_ME"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
+
+security = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
 
 router_auth = APIRouter(prefix="/auth", tags=["Авторизация"])
 
@@ -35,10 +37,10 @@ def create_access_token(data: dict):
     return coded_jwt
 
 #ВХОД
-@router_auth.post("/login",response_model=TokenResponseSchema,summary="Вход по уникальному коду")
-def login_for_access_token(data: LoginSchema,db: Session = Depends(get_db)):
+@router_auth.post("/login",response_model=TokenResponseSchema,summary="Вход по уникальному коду",include_in_schema=False)
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),db: Session = Depends(get_db)):
     #Хешируем код пользователя
-    hashed_input = hash_code(data.code)
+    hashed_input = hash_code(form_data.username)
     #сравниваем два хеша
     access_code_entry = (db.query(AccessCode).filter(AccessCode.code_hash == hashed_input).first())
     #Если пальчиком по буковке промазал
@@ -68,14 +70,9 @@ def login_for_access_token(data: LoginSchema,db: Session = Depends(get_db)):
 
 #ПРОВЕРКА ВАЛИДНОСТИ ТОКЕНА jwt
 def require_role(required_role: str):
-
-    def dependency(credentials: HTTPAuthorizationCredentials = Security(security)):
-        token = credentials.credentials
-
+    def dependency(token: str = Depends(security)):
         try:
-            # Декодируем и проверяем роль и срок годности токена
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-
             user_role: str = payload.get("role")
 
             if user_role is None:
@@ -84,7 +81,6 @@ def require_role(required_role: str):
                     detail="Невалидный токен: отсутствует роль",
                 )
 
-            # Проверяем совпадает ли роль из токена с требуемой
             if user_role != required_role:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,

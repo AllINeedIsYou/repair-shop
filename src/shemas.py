@@ -36,10 +36,6 @@ class AccessCodeResponseSchema(BaseModel):
     is_active: bool
 
 
-# Схема для авторизации
-class LoginSchema(BaseModel):
-    code: str
-
 
 # схема для маленькой, миленькой jwtешки
 class TokenResponseSchema(BaseModel):
