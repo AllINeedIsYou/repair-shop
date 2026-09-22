@@ -1,34 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from starlette import status
 import secrets
 import hashlib
 import string
-from src.databases.database import get_db, Base, engine
 from src.models import Application,AccessCode
-from src.shemas import ApplicationShema, AccessCodeCreateSchema, AccessCodeCreateSchema, AccessCodeResponseSchema
-
-
-router_services = APIRouter(prefix='/services', tags=["Админ"])
 
 #ФУНКЦИЯ ХЕШИРОВАНИЯ
 def hash_code(code: str) -> str:
     return hashlib.sha256(code.encode('utf-8')).hexdigest()
 
-# ЧИСТАЯ ФУНКЦИЯ ДЛЯ БД
+# ЧИСТАЯ ФУНКЦИЯ ДЛЯ БД ЗАЯВКА
 def get_all_applications(db: Session):
     return db.query(Application).all()
 
-# ЭНДПОИНТ ДЛЯ СЕРВЕРА
-@router_services.get("/get_applications", response_model=list[ApplicationShema], summary="Список заявок")
-def get_application_endpoint(db: Session = Depends(get_db)):
-    return get_all_applications(db)
+#ЧИСТАЯ ФУНКЦИЯ ДЛЯ БД КОДЫ
+def get_all_accesscode(db: Session):
+    return db.query(AccessCode).all()
 
-# СОЗДАНИЕ ФАЙЛА С БД
-@router_services.post('/database_create', summary='Создание базы данных')
-def create_bd():
-    Base.metadata.create_all(bind=engine)
-    return {"status": "database created"}
 
 # ГЕНЕРИРУЕМ КОД
 def generate_access_code(length: int = 12):
@@ -38,74 +25,3 @@ def generate_access_code(length: int = 12):
         secrets.choice(alphabet)
         for _ in range(length)
     )
-
-
-def create_unique_access_code(db: Session, role: str, FIO: str) -> tuple[AccessCode, str]:
-
-    while True:
-        new_code = generate_access_code()
-        hashed = hash_code(new_code)
-
-        # Проверка на дубликат
-        existing = db.query(AccessCode).filter(AccessCode.code_hash == hashed).first()
-        if not existing:
-            break
-
-    db_access_code = AccessCode(
-        code_hash=hashed,
-        role=role,
-        FIO=FIO,
-        is_active=True
-    )
-#мы сохраняем в бд хэш, не сам код, но код отдаем в return,
-# чтобы вывести его в эндпоинте ниже, чтобы пользователь мох сохранить его и передать работнику
-    db.add(db_access_code)
-    db.commit()
-    db.refresh(db_access_code)
-
-    return db_access_code,new_code
-
-
-
-@router_services.post("/access-codes",response_model=AccessCodeResponseSchema,summary="Сгенерировать и сохранить новый код доступа")
-def generate_code_endpoint(data: AccessCodeCreateSchema,db: Session = Depends(get_db)):
-    allowed_roles = ["operator", "engineer", "repairer"]
-    if data.role not in allowed_roles:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Недопустимая роль. Допустимые роли: {','.join(allowed_roles)}"
-        )
-
-    db_entry, raw_code = create_unique_access_code(db=db, role=data.role, FIO=data.FIO)
-
-    return AccessCodeResponseSchema(
-        id=db_entry.id,
-        code=raw_code,
-        role=db_entry.role,
-        is_active=db_entry.is_active #AccessCodeResponseSchema
-    )
-#увольнение работника
-def dismissal_employee(employee_id: int,db: Session):
-    employee=db.query(AccessCode).filter(AccessCode.id==employee_id).first()
-    if not employee:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Работник с id={employee_id} не найден"
-        )
-    if not employee.is_active:
-        raise HTTPException(
-            status_code=400,
-            detail="Работник уже уволен"
-        )
-    employee.is_active=False
-    employee_status=f'Работник {employee_id} уволен {employee.FIO}'
-    db.commit()
-    db.refresh(employee)
-    return {
-        'status':'success',
-        'message': employee_status
-    }
-#ендпоинт для увольнения
-@router_services.patch('/{employee_id}/dismissal',summary='Увольнение работника, деактивация')
-def dismissal(employee_id:int ,db:Session=Depends(get_db)):
-    return dismissal_employee(employee_id=employee_id,db=db)
