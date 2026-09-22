@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from starlette import statusc
+from starlette import status
 from src.api.services.services import generate_access_code, hash_code
 from src.models import Application,AccessCode
 
