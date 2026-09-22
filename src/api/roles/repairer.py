@@ -12,11 +12,13 @@ router_repair=APIRouter(prefix='/repairer',tags=["Мастер по ремонт
 # def get_engineer_dashboard():
 #     return {"message": "Добро пожаловать в панель управления Мастера по ремонту! Желаем вам приятной смены<3"}
 
-#получаем список заявок
+#Получаем список заявок
 @router_repair.get("/get_applications",response_model=list[ApplicationShema],dependencies=[Depends(require_role("repairer"))],summary="Список заявок")
 def get_application_repairer(db: Session = Depends(get_db)):
     return get_all_applications(db=db)
 
+
+#Отметка о готовности ремонта
 @router_repair.post('/{application_id}/repair', dependencies=[Depends(require_role("repairer"))], response_model=ApplicationShema, summary='Отметка о готовности ремонта')
 def status_repair(application_id: int, db: Session = Depends(get_db)):
     return repair_info(application_id=application_id, db=db)

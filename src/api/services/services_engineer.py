@@ -1,8 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
-
-from src.databases.database import get_db
 from src.models import Application
 
 #функция для диагностки(status_info)

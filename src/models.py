@@ -1,6 +1,5 @@
 from sqlalchemy import String, Text, Integer
 from sqlalchemy.orm import Mapped, mapped_column
-
 from src.databases.database import Base
 
 #таблица с заявками

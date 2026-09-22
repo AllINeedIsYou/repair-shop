@@ -12,7 +12,7 @@ router=APIRouter() #главный папа роутер
 #детки-пиздюки
 router.include_router(router_eng) #инженер
 router.include_router(router_operator)#оператор
-router.include_router(router_admin)#cистемная хрень, мб потом в адмику поменять
+router.include_router(router_admin)#админ
 router.include_router(router_repair)#работяга-трудяга
 router.include_router(router_client)# наш любимый, ценный пользователь
 router.include_router(router_auth) # авторизация

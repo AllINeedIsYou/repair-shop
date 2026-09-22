@@ -5,7 +5,6 @@ from starlette import status
 from src.models import Application
 
 #функция для работы(status_info)
-
 def repair_info(application_id:int,db:Session):
     repair_id=db.query(Application).filter(Application.id==application_id).first()
     if not repair_id:

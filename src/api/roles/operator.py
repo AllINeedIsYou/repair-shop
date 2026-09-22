@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
 from src.api.services.services import get_all_applications
 from src.api.services.services_operator import  del_elements_aplication_by_id
 from src.auth.auth import require_role

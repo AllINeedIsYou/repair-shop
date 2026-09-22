@@ -4,7 +4,7 @@ from src.databases.database import get_db
 from src.models import Application
 from src.api.roles.operator import phone_operator
 
-
+#функция для просмотора статуса заявки по айди
 def status_client(application_id: int, db: Session = Depends(get_db)):
 
     application = (

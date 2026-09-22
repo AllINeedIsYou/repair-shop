@@ -2,10 +2,10 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
 from src.api.services.services import generate_access_code, hash_code
-from src.models import Application,AccessCode
+from src.models import AccessCode
 
 
-
+#создание и проверка кода+сохранение
 def create_unique_access_code(db: Session, role: str, FIO: str) -> tuple[AccessCode, str]:
 
     while True:

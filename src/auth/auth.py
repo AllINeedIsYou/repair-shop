@@ -18,7 +18,7 @@ ACCESS_TOKEN_EXPIRE_HOURS = 24
 
 router_auth = APIRouter(prefix="/auth", tags=["Авторизация"])
 
-
+#функция кеширования
 def hash_code(code: str):
     return hashlib.sha256(code.encode("utf-8")).hexdigest()
 
@@ -34,7 +34,7 @@ def create_access_token(data: dict):
     coded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return coded_jwt
 
-
+#ВХОД
 @router_auth.post("/login",response_model=TokenResponseSchema,summary="Вход по уникальному коду")
 def login_for_access_token(data: LoginSchema,db: Session = Depends(get_db)):
     #Хешируем код пользователя
